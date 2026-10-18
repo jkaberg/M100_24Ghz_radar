@@ -7,10 +7,6 @@ your Zigbee network, and it installs over the air from Zigbee2MQTT: no soldering
 Measured on a converted sensor: traffic went from 35–120 messages a minute to 4 in 3 minutes, and presence
 still reports instantly. Details in [verification](docs/verification.md#on-hardware).
 
-> [!WARNING]
-> Confirmed on one unit so far. If the module ever fails to come back on Zigbee, recovery needs a
-> USB-UART wired to the module. There is no way back to the stock Tuya firmware without a wired
-> flash.
 
 ## The problem
 
