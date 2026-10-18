@@ -1,0 +1,3 @@
+ram_code_flash.c/.h are copied from romasku/tuya-zigbee-switch (src/telink/ota_reformating),
+licensed under the terms in LICENSE-romasku. ensure_ota_scheme.c/.h are adapted from the same
+project; see the comment at the top of ensure_ota_scheme.c for what changed.

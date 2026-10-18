@@ -1,0 +1,58 @@
+name: release
+
+# Push a tag like v1.0.3 to build, test and publish. The tag must match the firmware version
+# (APP_RELEASE/APP_BUILD in firmware/src/include/version_cfg.h), e.g. v1.0.3 <-> V1.0.03.
+# Users point z2m at .../releases/latest/download/z2m_ota_index.json, so publishing a release is
+# all it takes for converted devices to be offered the update.
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: cache deps
+        uses: actions/cache@v4
+        with:
+          path: .deps
+          key: deps-${{ hashFiles('tools/setup.sh') }}
+
+      - name: setup
+        run: tools/setup.sh
+
+      - name: build
+        run: firmware/build.sh
+
+      - name: test
+        run: make -C firmware/tests
+
+      - name: check tag matches firmware version
+        run: |
+          img=$(ls firmware/bin/6565-5244-zy_m100_zrd_V*.zigbee | sort | tail -n1)
+          fw=$(echo "$img" | sed -E 's/.*_V([0-9]+)\.([0-9]+)\.([0-9]+)\.zigbee/\1.\2.\3/' \
+               | awk -F. '{ printf "%d.%d.%d", $1, $2, $3 }')
+          tag=${GITHUB_REF_NAME#v}
+          echo "tag $tag, newest firmware $fw ($img)"
+          [ "$tag" = "$fw" ] || { echo "::error::tag v$tag does not match firmware $fw"; exit 1; }
+
+      - name: bundle
+        # dist/release: OTA images, both converters, an OTA index pointing at this release's
+        # assets (z2m_ota_index.json), the offline zip and SHA256SUMS
+        run: python3 tools/make_bundle.py --repo "$GITHUB_REPOSITORY" --tag "$GITHUB_REF_NAME"
+
+      - name: publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            --title "$GITHUB_REF_NAME" \
+            --generate-notes \
+            --latest \
+            dist/release/*

@@ -1,0 +1,25 @@
+ZY-M100-24GV2 firmware
+
+This project includes or is derived from the following works:
+
+- slacky1965/tuya_thermostat_zrd (Apache License 2.0)
+  https://github.com/slacky1965/tuya_thermostat_zrd
+  The firmware build system (firmware/makefile, firmware/project.mk, firmware/make/),
+  firmware/tools/tl_check_fw.py, parts of firmware/src/common/ and firmware/src/include/, and
+  the structure of app_main.c, zb_appCb.c and app_endpoint_cfg.c.
+
+- Telink Zigbee SDK (Apache License 2.0), Copyright (c) Telink Semiconductor (Shanghai) Co., Ltd.
+  https://github.com/telink-semi/telink_zigbee_sdk
+  Not redistributed; fetched by tools/setup.sh. firmware/src/common/main.c and
+  firmware/src/common/factory_reset.c are based on the SDK sample code.
+
+- romasku/tuya-zigbee-switch (MIT License)
+  https://github.com/romasku/tuya-zigbee-switch
+  firmware/src/ota_scheme/ram_code_flash.c/.h (copied) and ensure_ota_scheme.c/.h (adapted).
+  Licence text: firmware/src/ota_scheme/LICENSE-romasku.
+
+Not redistributed, fetched by tools/setup.sh for building and testing only:
+- tc32 GCC toolchain (Telink)
+- GD32 firmware dumps from Andrik45719/ZY-M100
+- a stock ZT3L flash dump from slacky1965/tuya_thermostat_zrd
+- TlsrPgm.py from pvvx/TLSRPGM (wired recovery only)

@@ -1,0 +1,12 @@
+# fetched by tools/setup.sh
+.deps/
+.venv/
+
+# build output
+firmware/out/
+firmware/bin/
+firmware/tests/build/
+dist/
+
+__pycache__/
+*.pyc
