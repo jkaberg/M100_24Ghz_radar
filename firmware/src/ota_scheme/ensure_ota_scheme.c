@@ -126,13 +126,16 @@ void _attribute_ram_code_sec_ ensure_correct_ota_scheme(void) {
 
     move_flash_data(current_addr, copy_to_addr, firmware_size);
 
-    u32 unused_flag = 0;
+    /* Clear only the byte the ROM and the Tuya bootloader check (+8). Writing all four 'KNLT'
+     * bytes let a cut write keep 0x4B at +8 but garble +9..+11: the ROM still booted the old slot
+     * while is_valid_image_at_address() said it was gone, so the handoff never finished. */
+    u8 unused_flag = 0;
     if (uses_bootloader) {
         /* bootloader first: from here on the ROM boots the verified copy at 0x40000 */
-        ram_code_flash_write_page(0x0 + FLASH_TLNK_FLAG_OFFSET, 4, (u8 *)&unused_flag);
-        ram_code_flash_write_page(BOOTLOADER_MODE_MAIN_ADDR + FLASH_TLNK_FLAG_OFFSET, 4, (u8 *)&unused_flag);
+        ram_code_flash_write_page(0x0 + FLASH_TLNK_FLAG_OFFSET, 1, &unused_flag);
+        ram_code_flash_write_page(BOOTLOADER_MODE_MAIN_ADDR + FLASH_TLNK_FLAG_OFFSET, 1, &unused_flag);
     } else {
-        ram_code_flash_write_page(SMALL_OTA_FLASH_ADDR + FLASH_TLNK_FLAG_OFFSET, 4, (u8 *)&unused_flag);
+        ram_code_flash_write_page(SMALL_OTA_FLASH_ADDR + FLASH_TLNK_FLAG_OFFSET, 1, &unused_flag);
     }
 
     SYSTEM_RESET();
