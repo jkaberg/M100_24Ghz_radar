@@ -1,6 +1,7 @@
 # Reverse-engineering helpers
 
-Used for [docs/gd32-7gclukjs-protocol.md](../../docs/gd32-7gclukjs-protocol.md) and
+Used for [docs/gd32-7gclukjs-protocol.md](../../docs/gd32-7gclukjs-protocol.md),
+[docs/gd32-ya4ft0w4-protocol.md](../../docs/gd32-ya4ft0w4-protocol.md) and
 [docs/findings.md](../../docs/findings.md). Need the venv and dumps from `tools/setup.sh`.
 
 | Tool | |
@@ -9,3 +10,4 @@ Used for [docs/gd32-7gclukjs-protocol.md](../../docs/gd32-7gclukjs-protocol.md) 
 | `disall.py <bin>` | Whole-image disassembly with PC-relative literals resolved |
 | `scan.py <bin>` | Vector tables, flash/backup-register literals and strings in a GD32 dump |
 | `emu_7gclukjs.py [bin]` | Runs the 7gclukjs firmware's own UART send and receive functions under unicorn and prints the frames |
+| `emu_ya4ft0w4.py [bin]` | The same for the ya4ft0w4 (24GV3) firmware, plus the DP9/DP104 slots, the 12-frame dump and the DP101 flash write |

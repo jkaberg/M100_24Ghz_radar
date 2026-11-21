@@ -17,7 +17,7 @@ image matters most: its manufacturer code / image type (0x1141 / 0xD3A3) are sha
 Tuya MCU module, so without the manufacturerName filter z2m would offer it to *any* Tuya TS0601
 in the network, and those devices would stop working.
 
-usage: make_bundle.py [--repo owner/name] [--tag vX.Y.Z]
+usage: make_bundle.py [--repo owner/name] [--tag vX.Y.Z] [--with-v3]
 """
 import argparse
 import glob
@@ -40,7 +40,7 @@ def header(path):
     return manuf, itype, ver
 
 
-def index_entry(img, url):
+def index_entry(img, url, stock_names):
     manuf, itype, ver = header(img)
     entry = {
         'url': url,
@@ -52,7 +52,7 @@ def index_entry(img, url):
     }
     if (manuf, itype) == (0x1141, 0xD3A3):
         # stock Tuya module -> custom firmware: this exact device only
-        entry.update({'modelId': 'TS0601', 'manufacturerName': ['_TZE204_7gclukjs'], 'maxFileVersion': 0xFF})
+        entry.update({'modelId': 'TS0601', 'manufacturerName': stock_names, 'maxFileVersion': 0xFF})
     else:
         entry.update({'modelId': 'ZY-M100-ZRD_1'})
     return entry
@@ -68,7 +68,10 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--repo', default='jkaberg/M100_24Ghz_radar')
     ap.add_argument('--tag', help='release tag, default v<firmware version>')
+    ap.add_argument('--with-v3', action='store_true',
+                    help='also offer the first image to _TZE204_ya4ft0w4 (24GV3, test builds only until confirmed)')
     a = ap.parse_args()
+    stock_names = ['_TZE204_7gclukjs'] + (['_TZE204_ya4ft0w4'] if a.with_v3 else [])
 
     # one firmware version per release, packaged with the stock ids and with ours
     from_tuya = sorted(glob.glob(os.path.join(ROOT, 'firmware', 'bin', '1141-d3a3-*-from-tuya.zigbee')))
@@ -95,8 +98,8 @@ def main():
         name = os.path.basename(img)
         shutil.copy(img, os.path.join(z2m, 'ota', name))
         shutil.copy(img, os.path.join(rel, name))
-        local_index.append(index_entry(img, 'ota/' + name))     # relative to the z2m data directory
-        remote_index.append(index_entry(img, base + name))
+        local_index.append(index_entry(img, 'ota/' + name, stock_names))     # relative to the z2m data directory
+        remote_index.append(index_entry(img, base + name, stock_names))
         manuf, itype, ver = header(img)
         print(f'{name}: manuf 0x{manuf:04x} type 0x{itype:04x} version 0x{ver:08x}')
 

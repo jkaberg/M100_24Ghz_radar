@@ -27,6 +27,30 @@ static const radar_variant_t variants[] = {
         .timeout_min_s  = 1,
         .timeout_max_s  = 1500,
     },
+    /*
+     * ZY-M100-24GV3 (_TZE204_ya4ft0w4), RE of its MCU firmware (docs/gd32-ya4ft0w4-protocol.md).
+     * Same template as 7gclukjs, but no presence DP (DP104 is a "time since target" enum, not
+     * presence), distance 0 = no target, sensitivity 0 is valid and the timeout goes to 15000 s.
+     */
+    {
+        .pid            = "ya4ft0w4",
+        .dp_state       = 1,
+        .dp_presence    = RADAR_DP_NONE,
+        .dp_distance    = 9,
+        .dp_illuminance = 103,
+        .dp_move_sens   = 2,
+        .dp_pres_sens   = 102,
+        .dp_range_min   = 3,
+        .dp_range_max   = 4,
+        .dp_timeout     = 105,
+        .distance_mm    = 100,
+        .distance_none  = 0,
+        .range_mm       = 10,
+        .sens_max       = 10,
+        .range_max_cm   = 1000,
+        .timeout_min_s  = 1,
+        .timeout_max_s  = 15000,
+    },
 };
 
 const radar_variant_t *radar_variant_find(const char *pid) {
@@ -164,10 +188,14 @@ uint16_t radar_on_dp(radar_t *r, const tuya_dp_t *dp, uint32_t now_ms) {
     r->dp_frames++;
     val = tuya_dp_u32(dp);
 
-    if (dp->id == v->dp_presence) {
+    if (v->dp_presence != RADAR_DP_NONE && dp->id == v->dp_presence) {
         chg = set_u8(&r->presence, val ? 1 : 0, RADAR_CHG_PRESENCE, r);
     } else if (dp->id == v->dp_state) {
         chg = set_u8(&r->state, val, RADAR_CHG_STATE, r);
+        /* MCUs without a presence DP (ya4ft0w4): presence is any state but "none" */
+        if (v->dp_presence == RADAR_DP_NONE) {
+            chg |= set_u8(&r->presence, val ? 1 : 0, RADAR_CHG_PRESENCE, r);
+        }
     } else if (dp->id == v->dp_distance) {
         /* signed on the wire: the 7gclukjs MCU sends -3 when there is no target, and 0..-2 for a
          * target closer than ~25 cm. 0 cm stays reserved for "no target", so a present target is

@@ -38,6 +38,8 @@ fetch $A/ZY-M100-24GV2_TZE204_7gclukjs.bin $D/dumps/ZY-M100-24GV2_TZE204_7gclukj
 fetch $A/ZY-M100-24GV2_TZE204_7gclukjs-TargetDistance_disable.bin \
       $D/dumps/ZY-M100-24GV2_TZE204_7gclukjs-TargetDistance_disable.bin \
       fd4833cd351e40e08c202e72a80196c4f241b25bab0b7133f39325dc4befd131
+fetch $A/ZY-M100-24GV3_TZE204_ya4ft0w4.bin $D/dumps/ZY-M100-24GV3_TZE204_ya4ft0w4.bin \
+      0823b58360741c8c36565016219832cf3e8fe8a03c3e09c815cccaab2a9c6600
 
 S=https://raw.githubusercontent.com/slacky1965/tuya_thermostat_zrd/9d1a784a9ee464888961aba39217dee8581078a2
 fetch $S/bin/tuya_original/tuya_thermostat_orig_aoclfnxz.bin $D/dumps/stock_zt3l_aoclfnxz.bin \

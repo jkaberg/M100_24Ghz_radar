@@ -18,6 +18,48 @@ backed by a dump, a disassembly, a log or a test. Sources are linked at the end.
 `_TZE204_ya4ft0w4` (24GV3). The older 5.8 GHz ZY-M100-L uses a Silabs **ZS3L** module instead.
 This project only targets `_TZE204_7gclukjs`.
 
+### The 24GV3 (`_TZE204_ya4ft0w4`), not supported yet
+
+Collected from public sources (issue #1) as groundwork for a V3 variant. Nothing below has been
+checked on a V3 unit by us. The MCU side is reverse-engineered in
+[gd32-ya4ft0w4-protocol.md](gd32-ya4ft0w4-protocol.md), and v1.0.4 carries a `ya4ft0w4` variant
+for testing.
+
+- **Same Zigbee module as the V2.**
+  - Andrik45719/ZY-M100#22 shows the z2m page of a `_TZE204_ya4ft0w4` unit (IEEE `0xa4c138…`)
+    and photos of its boards. The power board (`2023.2-V3.1`) carries a module silkscreened
+    **ZT3L**. The radar board is `ZY_V230605-24G-V1.3`.
+  - zigpy/zha `tests/data/devices/tze204-ya4ft0w4-ts0601-0x0000004a.json` has node descriptor
+    manufacturer code 0x1141, max buffer 66, and OTA `current_file_version` 74 ("Zigbee module
+    1.0.10"). All three match the V2 test unit.
+  - Unknown: the OTA `imageType`. Expected to be 0xD3A3 like the V2, but no published query found.
+- **`_TZE200_ya4ft0w4` is different hardware.** The zha dump `tze200-ya4ft0w4-ts0601.json`
+  reports manufacturer code 0x1234 and max buffer 108, so not the Telink module. z2m puts
+  `_TZE204/_TZE200_ya4ft0w4` and `_TZE204/_TZE200_gkfbdvyx` in one definition. An OTA index
+  entry must match `_TZE204_ya4ft0w4` exactly.
+- **Board revisions vary.** A `ZY-V240405-5.824G-V1.5` radar board also shows up as 24GV3
+  (Andrik45719/ZY-M100#22). Its module wasn't photographed.
+- **Radar MCU.** GD32E230 as on the V2. Andrik45719/ZY-M100 hosts a stock dump,
+  `ZY-M100-24GV3_TZE204_ya4ft0w4.bin`, so the product id, baud rate and DP map can be taken from
+  it without hardware. Not reverse-engineered yet. gekkehenkie11 reports that this firmware
+  resets itself after 3 days (Andrik45719/ZY-M100#27).
+- **DP map per z2m** (zigbee-herdsman-converters `tuya.ts`, `ZY-M100-24GV3`):
+
+  | DP | Meaning |
+  |---|---|
+  | 1 | state enum (none/presence/move), presence derived from it |
+  | 2, 102 | move/presence sensitivity 1–10, 0 reported at times |
+  | 3, 4 | range min/max in cm, 75 cm steps (`gkfbdvyx`: 50 cm) |
+  | 9 | distance in dm |
+  | 101 | find_switch (distance reporting on/off) |
+  | 103 | illuminance |
+  | 105 | timeout in s, up to 15000 |
+
+  Compared with the V2: no DP 104, adds DP 101, and a 10× longer timeout range.
+- **Floods the same way.** Andrik's notes list target distance about once a second, illuminance
+  every 500 ms and settings every 10 s. Some units are quieter while `find_switch` is off
+  (Andrik45719/ZY-M100#22).
+
 ## Why it floods
 
 - The GD32 sends target distance (DP 9) about once a second whenever the raw distance in cm
@@ -148,7 +190,8 @@ just booted from. See [how-it-works.md](how-it-works.md#first-boot-handoff).
 
 - wzwenzhi/Wenzhi-ZigBee2mqtt #1, #11
 - Koenkk/zigbee2mqtt #19045 (324 comments)
-- Andrik45719/ZY-M100 (GD32 dumps, MCU-OTA notes)
+- Andrik45719/ZY-M100 (GD32 dumps, MCU-OTA notes; #22 and #27 for the 24GV3)
+- zigpy/zha device test data for `_TZE204_ya4ft0w4` and `_TZE200_ya4ft0w4`
 - andi-at-1/z2m-tuya-mcu-ota
 - slacky1965/tuya_thermostat_zrd
 - romasku/tuya-zigbee-switch
