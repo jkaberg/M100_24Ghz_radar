@@ -4,6 +4,8 @@ Custom firmware for the Zigbee module inside the Tuya ZY-M100-24GV2 24 GHz prese
 (`TS0601` / `_TZE204_7gclukjs`, also sold as Wenzhi WZ-M100-W). It stops the sensor from flooding
 your Zigbee network, and it installs over the air from Zigbee2MQTT: no soldering, no Tuya hub.
 
+Support for the ZY-M100-24GV3 (`_TZE204_ya4ft0w4`) is [being tested](#zy-m100-24gv3).
+
 Measured on a converted sensor: traffic went from 35–120 messages a minute to 4 in 3 minutes, and presence
 still reports instantly. Details in [verification](docs/verification.md#on-hardware).
 
@@ -44,9 +46,26 @@ stock uses the same method romasku/tuya-zigbee-switch uses for 180+ Tuya device 
 
 - Zigbee2MQTT 2.x. Tested against 2.14.2.
 - The sensor paired and working in z2m, showing up as `ZY-M100-24GV2` with manufacturer
-  `_TZE204_7gclukjs`. Other ZY-M100 variants use different hardware or DPs and are **not**
-  supported.
+  `_TZE204_7gclukjs`. The 24GV3 is in testing, see [below](#zy-m100-24gv3). Other ZY-M100
+  variants use different hardware or DPs and are **not** supported.
 - The sensor close to the coordinator or a router, on stable power.
+
+### ZY-M100-24GV3
+
+| Sensor | Manufacturer | Status |
+|---|---|---|
+| ZY-M100-24GV2 | `_TZE204_7gclukjs` | Supported |
+| ZY-M100-24GV3 | `_TZE204_ya4ft0w4` | **In testing**, pre-release only |
+| ZY-M100-24GV3 | `_TZE200_ya4ft0w4` | Not supported, different Zigbee module |
+| ZY-M100-24GV3 | `_TZE204_gkfbdvyx`, `_TZE200_gkfbdvyx` | Not supported, different radar firmware |
+
+The V3 test build is [v1.0.4-rc1](https://github.com/jkaberg/M100_24Ghz_radar/releases/tag/v1.0.4-rc1).
+It runs on one tester's V3: presence and illuminance work. Distance, changing settings and
+long-term running are not confirmed yet. The regular releases below don't offer anything to a V3.
+
+There is no way back to the stock firmware over the air, and a module that never comes back on
+Zigbee needs a wired flash. If you're OK with that and want to help, convert one unit and follow
+[issue #1](https://github.com/jkaberg/M100_24Ghz_radar/issues/1), which has the instructions.
 
 ## Install
 
@@ -121,7 +140,7 @@ release notes a converter change, replace `zy-m100-zrd.mjs` the same way as abov
 | `distance_deadband` | Only report distance after it moved this many cm. 0 = every change, 10–20 skips the radar's ±10 cm jitter |
 | `distance_offset` | Calibration in cm, added to every distance reading (−300…300). Stand at a known distance and adjust until it matches |
 | `distance_scale` | Calibration in %, applied before the offset (50…200). Only needed if the error grows with distance |
-| `move_sensitivity`, `presence_sensitivity`, `detection_distance_min/max`, `presence_timeout` | Radar settings, same as before. The radar rounds ranges to 0.75 m steps |
+| `move_sensitivity`, `presence_sensitivity`, `detection_distance_min/max`, `presence_timeout` | Radar settings, same as before. The radar rounds ranges to 0.75 m steps. A sensitivity of `0` means it hasn't been set since the radar MCU last started (it can't be read back) |
 | `safe_mode` | `true` = started without the radar code, see below |
 
 In Home Assistant some entities change name: `presence` → `occupancy`, `state` → `presence_state`,
@@ -155,7 +174,8 @@ python3 tools/make_bundle.py   # dist/release/: images, converters, hosted OTA i
   what the stock module looks like
 - [How it works](docs/how-it-works.md): firmware design, first-boot handoff, recovery
 - [Verification](docs/verification.md): what has been tested, the red-team rounds, residual risk
-- [GD32 UART protocol](docs/gd32-7gclukjs-protocol.md): reverse engineering of the radar MCU
+- GD32 UART protocol, [V2](docs/gd32-7gclukjs-protocol.md) and
+  [V3](docs/gd32-ya4ft0w4-protocol.md): reverse engineering of the radar MCU
 - [Red-team reports](docs/redteam/)
 
 ## Credits

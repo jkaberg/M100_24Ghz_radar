@@ -1,4 +1,5 @@
-// Zigbee2MQTT converter for the ZY-M100-24GV2 radar (_TZE204_7gclukjs), one file for both states:
+// Zigbee2MQTT converter for the ZY-M100-24GV2 (_TZE204_7gclukjs) and 24GV3 (_TZE204_ya4ft0w4)
+// radars, one file for both states:
 //  - stock: z2m's built-in definition plus `ota: true`, so the custom firmware can be pushed to it;
 //  - converted (modelId ZY-M100-ZRD_1): the custom firmware, everything on the Occupancy Sensing
 //    cluster, radar values in attributes 0xF000-0xF00F (firmware/src/include/app_radar.h).
@@ -16,6 +17,14 @@ const onChange = {min: 0, max: 0xfffe, change: 1};
 const stock = {
     ...tuya.definitions.find((d) => d.model === 'ZY-M100-24GV2'),
     fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE204_7gclukjs'}],
+    ota: true,
+};
+
+// V3: z2m's definition also covers _TZE200_ya4ft0w4 and *_gkfbdvyx, which have another Zigbee
+// module (docs/findings.md), so OTA is only enabled for the _TZE204_ya4ft0w4 fingerprint
+const stockV3 = {
+    ...tuya.definitions.find((d) => d.model === 'ZY-M100-24GV3'),
+    fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE204_ya4ft0w4'}],
     ota: true,
 };
 
@@ -150,9 +159,10 @@ const converted = {
             name: 'presence_timeout',
             cluster: OCC,
             attribute: {ID: 0xf008, type: UINT16},
+            description: 'Max 1500 s on the 24GV2 and 15000 s on the 24GV3, the firmware clamps to the radar\'s limit',
             unit: 's',
             valueMin: 1,
-            valueMax: 1500,
+            valueMax: 15000,
             reporting: onChange,
             entityCategory: 'config',
         }),
@@ -160,4 +170,4 @@ const converted = {
     ota: true,
 };
 
-export default [stock, converted];
+export default [stock, stockV3, converted];

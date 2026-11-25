@@ -156,6 +156,7 @@ static void test_product_id(void) {
     CHECK(strcmp(pid, "7gclukjs") == 0);
     CHECK(radar_variant_find(pid) != NULL);
     CHECK(radar_variant_find("e5m9c5hl") == NULL);
+    CHECK(radar_variant_find("ya4ft0w") == NULL);
     CHECK(radar_variant_find("7gclukj") == NULL);
     CHECK(radar_variant_find("7gclukjsx") == NULL);
 
@@ -460,6 +461,51 @@ static void test_lux(void) {
     CHECK_EQ(radar_lux_to_zcl(0xFFFFFFFFu), 0xFFFE);
 }
 
+static void test_v3(void) {
+    radar_t r;
+    uint8_t st[8], buf[16];
+    tuya_dp_t dp;
+    uint16_t off;
+
+    CHECK(radar_variant_find("ya4ft0w4") != NULL);
+    radar_init(&r, radar_variant_find("ya4ft0w4"), 0, 25);
+
+    /* DP104 is a "time since target" enum on this MCU, never presence */
+    dp = mkdp(104, TUYA_DP_ENUM, 3, st);
+    CHECK_EQ(radar_on_dp(&r, &dp, 0), 0);
+
+    /* presence follows the state DP */
+    dp = mkdp(1, TUYA_DP_ENUM, RADAR_STATE_MOVE, st);
+    CHECK_EQ(radar_on_dp(&r, &dp, 0), RADAR_CHG_STATE | RADAR_CHG_PRESENCE);
+    CHECK_EQ(r.presence, 1);
+    dp = mkdp(1, TUYA_DP_ENUM, RADAR_STATE_PRESENCE, st);
+    CHECK_EQ(radar_on_dp(&r, &dp, 0), RADAR_CHG_STATE);
+    CHECK_EQ(r.presence, 1);
+    dp = mkdp(1, TUYA_DP_ENUM, RADAR_STATE_NONE, st);
+    CHECK_EQ(radar_on_dp(&r, &dp, 0), RADAR_CHG_STATE | RADAR_CHG_PRESENCE);
+    CHECK_EQ(r.presence, 0);
+
+    /* distance in dm, 0 = no target */
+    dp = mkdp(9, TUYA_DP_VALUE, 17, st);
+    radar_on_dp(&r, &dp, 0);
+    CHECK_EQ(r.distance_cm, 170);
+    dp = mkdp(9, TUYA_DP_VALUE, 0, st);
+    radar_on_dp(&r, &dp, 1000);
+    CHECK_EQ(r.distance_cm, 0);
+
+    /* sensitivity 0 is valid, timeout goes to 15000 s */
+    radar_build_setting(&r, RADAR_SET_MOVE_SENS, 0, buf, sizeof(buf));
+    off = 0;
+    tuya_dp_next(buf, 8, &off, &dp);
+    CHECK_EQ(dp.id, 2);
+    CHECK_EQ(tuya_dp_u32(&dp), 0);
+    radar_build_setting(&r, RADAR_SET_TIMEOUT, 20000, buf, sizeof(buf));
+    off = 0;
+    tuya_dp_next(buf, 8, &off, &dp);
+    CHECK_EQ(dp.id, 105);
+    CHECK_EQ(tuya_dp_u32(&dp), 15000);
+}
+
 int main(void) {
     test_build_and_parse();
     test_parser_resync();
@@ -473,6 +519,7 @@ int main(void) {
     test_settings_out();
     test_invalidate();
     test_lux();
+    test_v3();
 
     printf("%d checks, %d failed\n", checks, fails);
     return fails ? 1 : 0;

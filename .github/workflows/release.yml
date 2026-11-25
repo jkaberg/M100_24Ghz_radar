@@ -39,20 +39,31 @@ jobs:
           fw=$(echo "$img" | sed -E 's/.*_V([0-9]+)\.([0-9]+)\.([0-9]+)\.zigbee/\1.\2.\3/' \
                | awk -F. '{ printf "%d.%d.%d", $1, $2, $3 }')
           tag=${GITHUB_REF_NAME#v}
+          tag=${tag%%-*}      # pre-release tags: v1.0.4-rc1 -> 1.0.4
           echo "tag $tag, newest firmware $fw ($img)"
           [ "$tag" = "$fw" ] || { echo "::error::tag v$tag does not match firmware $fw"; exit 1; }
 
       - name: bundle
         # dist/release: OTA images, both converters, an OTA index pointing at this release's
         # assets (z2m_ota_index.json), the offline zip and SHA256SUMS
-        run: python3 tools/make_bundle.py --repo "$GITHUB_REPOSITORY" --tag "$GITHUB_REF_NAME"
+        # pre-releases (tags with a suffix, v1.0.4-rc1) also offer the first image to the 24GV3
+        # while that is in testing; full releases stay 24GV2-only until it is confirmed
+        run: |
+          extra=
+          case "$GITHUB_REF_NAME" in *-*) extra=--with-v3 ;; esac
+          python3 tools/make_bundle.py --repo "$GITHUB_REPOSITORY" --tag "$GITHUB_REF_NAME" $extra
 
       - name: publish
         env:
           GH_TOKEN: ${{ github.token }}
+        # a pre-release never becomes "latest", so users on .../releases/latest/... don't get it
         run: |
+          case "$GITHUB_REF_NAME" in
+            *-*) kind=--prerelease ;;
+            *) kind=--latest ;;
+          esac
           gh release create "$GITHUB_REF_NAME" \
             --title "$GITHUB_REF_NAME" \
             --generate-notes \
-            --latest \
+            $kind \
             dist/release/*
