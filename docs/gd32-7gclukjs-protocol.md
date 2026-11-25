@@ -121,8 +121,8 @@ order, **sends at most one frame**, and clears that bit. Set bit = 0x3540, clear
 | 15 | **104** presence | **enum** (type 4), not bool | raw state == 0 → 0, otherwise 1 |
 | 12 | **9** distance | value | **`(raw_cm + 5)/10 − 3`**, unsigned, i.e. decimetres rounded with a −30 cm offset. raw_cm = u16 0x200000fe. **No target → raw 0 → 0xFFFFFFFD (−3)**. Any raw < 25 cm also wraps to a negative value [emu] |
 | 7 | **103** illuminance | value | u16 [0x20000384], 0…2000 (see below) |
-| 9 | **2** move sensitivity | value | byte [0x2000036f] (0–10) |
-| 14 | **102** presence sensitivity | value | byte [0x20000370] (0–10) |
+| 9 | **2** move sensitivity | value | byte [0x2000036f] (0–10). Only stored when the radar acks a write (0x37ae), never read back: 0 after every MCU reset |
+| 14 | **102** presence sensitivity | value | byte [0x20000370] (0–10), same (0x37c4) |
 | 16 | **3** min range | value | min_gate × 75 (cm) (0x3b08(1)) |
 | 10 | **4** max range | value | max_gate × 75 (cm) (0x3b08(0)) |
 | 13 | **105** presence timeout | value | u16 [0x2000037e] (radar readback; seconds [inf]) |

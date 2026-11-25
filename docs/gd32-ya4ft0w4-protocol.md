@@ -218,10 +218,16 @@ DP101 write erases and rewrites the page.
 carries a 128 KiB part or the access faults. The dump is 64 KiB and cannot tell.
 
 Sensitivities, ranges and timeout are **not** stored by the GD32. They live in the radar SoC. The
-GD32 reads them back (config read every 5 s until it gets an answer) and reports what the radar
-says. Whether the radar SoC keeps them over a power cut is not visible here [inf]. Until the
-read-back arrives, CFG is zero, so a dump in the first seconds after boot reports DP 2, 102, 3,
-4, 105 as 0 [dis]. This matches the "0 reported at times" in z2m reports.
+GD32 reads **ranges and timeout** back (config read every 5 s until it gets an answer) and reports
+what the radar says. Until that arrives, a dump in the first seconds after boot reports DP 3, 4 and
+105 as 0 [dis]. Whether the radar SoC keeps its settings over a power cut is not visible here [inf].
+
+**The sensitivities are never read back** [dis]. The config answer (type 4 or 0xF4, 0x3aec) only
+fills min gate (CFG+1), max gate (CFG+0) and timeout (CFG+0x12). CFG+3 and CFG+4 are only stored
+when the radar acks a sensitivity write (types 1 and 2, 0x3b38 / 0x3b4e). So DP 2 and 102 report
+**0 until they have been written, and 0 again after every GD32 reset**: 0 means "unknown", not the
+radar's setting. This matches the "0 reported at times" in z2m reports, the first V3 unit (issue
+#1) and the V2 test unit, which only ever reported 0.
 
 **The self reset** (main loop 0x2916–0x295c, same as V2): NVIC reset after a 2 s delay when
 1. no radar frame for > 60 s (CFG+0x2c), or
@@ -290,9 +296,9 @@ Recommended:
    rate-limits distance.
 5. Drop DP101 and DP104 frames as unknown DPs (they already count as `dp_dropped`), and drop
    DP 0xFF as on the V2.
-6. Ignore DP 2/102/3/4/105 = 0 in a dump that arrives before the first DP1, or accept them
-   and let the next dump correct them. Today the module would publish range 0 briefly after an
-   MCU reset.
+6. Ignore DP 3/4/105 = 0 in a dump that arrives before the first DP1, or accept them and let
+   the next dump correct them. Today the module would publish range 0 briefly after an MCU reset.
+   The next dump does not correct DP 2/102: they stay 0 until written (§7).
 7. The module's 0x08 query after product info is harmless but useless; 0x28 is the way to get
    the state.
 
@@ -300,4 +306,6 @@ Open risks:
 - The flash page at 0x0801F800 is outside the dump. If the real chip has 64 KiB, the DP101 path
   could fault [inf]. Test one DP101 write on hardware before relying on item 4.
 - Radar-SoC persistence of sens/range/timeout over a power cut is unknown.
-- Nothing here is checked on a V3 unit. `_TZE200_ya4ft0w4` and `gkfbdvyx` are other firmware.
+- One V3 unit runs v1.0.4-rc1 (issue #1, [verification](verification.md#on-hardware)): state,
+  presence and lux work. Distance, writes and the 72 h reset are not checked on it yet.
+  `_TZE200_ya4ft0w4` and `gkfbdvyx` are other firmware.

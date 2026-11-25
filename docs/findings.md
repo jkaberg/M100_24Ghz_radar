@@ -21,7 +21,8 @@ This project only targets `_TZE204_7gclukjs`.
 ### The 24GV3 (`_TZE204_ya4ft0w4`), not supported yet
 
 Collected from public sources (issue #1) as groundwork for a V3 variant. Nothing below has been
-checked on a V3 unit by us. The MCU side is reverse-engineered in
+checked on a V3 unit by us, but one tester runs the test build
+([verification](verification.md#on-hardware)). The MCU side is reverse-engineered in
 [gd32-ya4ft0w4-protocol.md](gd32-ya4ft0w4-protocol.md), and v1.0.4 carries a `ya4ft0w4` variant
 for testing.
 
@@ -41,14 +42,14 @@ for testing.
   (Andrik45719/ZY-M100#22). Its module wasn't photographed.
 - **Radar MCU.** GD32E230 as on the V2. Andrik45719/ZY-M100 hosts a stock dump,
   `ZY-M100-24GV3_TZE204_ya4ft0w4.bin`, so the product id, baud rate and DP map can be taken from
-  it without hardware. Not reverse-engineered yet. gekkehenkie11 reports that this firmware
+  it without hardware. gekkehenkie11 reports that this firmware
   resets itself after 3 days (Andrik45719/ZY-M100#27).
 - **DP map per z2m** (zigbee-herdsman-converters `tuya.ts`, `ZY-M100-24GV3`):
 
   | DP | Meaning |
   |---|---|
   | 1 | state enum (none/presence/move), presence derived from it |
-  | 2, 102 | move/presence sensitivity 1–10, 0 reported at times |
+  | 2, 102 | move/presence sensitivity 1–10, 0 = not set since the MCU started |
   | 3, 4 | range min/max in cm, 75 cm steps (`gkfbdvyx`: 50 cm) |
   | 9 | distance in dm |
   | 101 | find_switch (distance reporting on/off) |

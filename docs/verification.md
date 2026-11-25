@@ -50,6 +50,16 @@ Test unit (`_TZE204_7gclukjs`, stock Zigbee module 1.0.10 / MCU 1.0.0), z2m 2.14
 | v1.0.01 → v1.0.02 over the air | Custom OTA chain (0x6565/0x5244): "OTA updated from 268513281 to 268578817", ~16 min. Rejoined by itself; settings kept; `safe_mode` false. During the download z2m republishes the device on every block request; that's update traffic, not radar reports |
 | Automatic reconfigure | With the converter's definition `version` set, z2m reconfigured the device by itself after a restart: "Successfully configured 'test_mmwave' (definition v1.0.3)". After an OTA, z2m re-interviews by itself, so the first update needs only Update + Permit join |
 
+24GV3 (`ya4ft0w4`), v1.0.4-rc1, first unit, reported by hawaltie in
+[issue #1](https://github.com/jkaberg/M100_24Ghz_radar/issues/1), 2026-11-25:
+
+| Step | Result |
+|---|---|
+| Stock → v1.0.04 over the air | Reported to have gone well, z2m shows 268709889. Not known yet whether it came through the index, so the stock `imageType` is unconfirmed |
+| Values | Occupancy and presence state change as they should, so the product id matched. Illuminance reports (101 and 133 lx, no reference to compare with). `safe_mode` false. Sensitivities read 0 ([expected](gd32-ya4ft0w4-protocol.md)) |
+| Traffic | 9 publishes in 8 min in the posted log. `presence_state` follows `occupancy` by 10 s, as on the V2 |
+| Distance, setting writes, 72 h MCU restart | Not tested yet |
+
 ## Residual risk
 
 Before the first flash the estimates were roughly 90–95 % that the stock module installs the
